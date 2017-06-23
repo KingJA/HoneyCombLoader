@@ -14,11 +14,8 @@ import android.graphics.Path;
 import android.graphics.PointF;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
-
-import java.util.concurrent.BlockingQueue;
 
 /**
  * Description:TODO
@@ -27,17 +24,18 @@ import java.util.concurrent.BlockingQueue;
  * Email:kingjavip@gmail.com
  */
 public class HoneyCombLoader extends View {
+    private String TAG = "HoneyCombLoader";
     private static final int DEFAULT_COLOR = 0xffCA5313;
     private static final int DEFAULT_DURATION = 500;
     private static final int DEFAULT_STYLE = 0;
     private static final float DEFAULT_ALPHA = 0.2f;
     private static final boolean DEFAULT_HIDE_BALL = false;
-    private String TAG = "HoneyCombLoader";
     private float mViewSize;
-    private boolean isFirst = true;
+    private boolean mFirstDraw = true;
     private Paint mHoneyCombPaint;
-    private PointF[] pointFs = new PointF[3];
+    private PointF[] mPointFs = new PointF[3];
     private Paint mMoveBallPaint;
+    private AnimatorSet mAnimatorSet;
     private float mHoneyCombRadius;
     private float mPaintWidth;
     private int mHoneyCombColor;
@@ -52,7 +50,6 @@ public class HoneyCombLoader extends View {
     private float mFadeInAlpha = 255f;
     private float mFadeOutAlpha = 255f;
     private float mHoneyCombAlpha;
-    private AnimatorSet animatorSet;
 
 
     public HoneyCombLoader(Context context) {
@@ -66,7 +63,6 @@ public class HoneyCombLoader extends View {
     public HoneyCombLoader(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         initAttrs(attrs);
-
     }
 
     private void initAttrs(AttributeSet attrs) {
@@ -110,10 +106,10 @@ public class HoneyCombLoader extends View {
         mMoveBallRadius = 0.1f * mHoneyCombRadius;
         float mOffsetXFromAnother = (float) (Math.cos(30 * Math.PI / 180) * mHoneyCombRadius);
         float mOffsetYFromAnother = 1.5f * mHoneyCombRadius;
-        pointFs[0] = new PointF(0.5f * mViewSize, mHoneyCombRadius);
-        pointFs[1] = new PointF(0.5f * mViewSize - mOffsetXFromAnother - marginX, mHoneyCombRadius +
+        mPointFs[0] = new PointF(0.5f * mViewSize, mHoneyCombRadius);
+        mPointFs[1] = new PointF(0.5f * mViewSize - mOffsetXFromAnother - marginX, mHoneyCombRadius +
                 mOffsetYFromAnother + marginY);
-        pointFs[2] = new PointF(0.5f * mViewSize + mOffsetXFromAnother + marginX, mHoneyCombRadius +
+        mPointFs[2] = new PointF(0.5f * mViewSize + mOffsetXFromAnother + marginX, mHoneyCombRadius +
                 mOffsetYFromAnother + marginY);
         initHoneyCombLoader();
     }
@@ -121,25 +117,24 @@ public class HoneyCombLoader extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        for (int i = 0; i < pointFs.length; i++) {
-            if ((mCurrentHoneyCombIndex) % pointFs.length == i) {
+        for (int i = 0; i < mPointFs.length; i++) {
+            if ((mCurrentHoneyCombIndex) % mPointFs.length == i) {
                 mHoneyCombPaint.setAlpha((int) mFadeInAlpha);
-            } else if ((mCurrentHoneyCombIndex + 1) % pointFs.length == i) {
+            } else if ((mCurrentHoneyCombIndex + 1) % mPointFs.length == i) {
                 mHoneyCombPaint.setAlpha((int) mFadeOutAlpha);
             } else {
                 mHoneyCombPaint.setAlpha(255);
             }
-            canvas.drawPath(getMirrorPath(mHoneyCombRadius, pointFs[i].x, pointFs[i].y), mHoneyCombPaint);
+            canvas.drawPath(getHoneyCombPath(mHoneyCombRadius, mPointFs[i].x, mPointFs[i].y), mHoneyCombPaint);
         }
 
-        if (isFirst) {
+        if (mFirstDraw) {
             startAnimator();
-            isFirst = false;
+            mFirstDraw = false;
         } else {
             if (!mHideBall) {
-                animateCircle(mCurrentMoveBallX, mCurrentMOveBallY, canvas);
+                drawMoveBall(mCurrentMoveBallX, mCurrentMOveBallY, canvas);
             }
-
         }
     }
 
@@ -168,7 +163,7 @@ public class HoneyCombLoader extends View {
                 return new PointF(startArr.x + fraction * (endArr.x - startArr.x), startArr
                         .y + fraction * (endArr.y - startArr.y));
             }
-        }, pointFs[mCurrentHoneyCombIndex % pointFs.length], pointFs[++mCurrentHoneyCombIndex % pointFs.length]);
+        }, mPointFs[mCurrentHoneyCombIndex % mPointFs.length], mPointFs[++mCurrentHoneyCombIndex % mPointFs.length]);
         pointAnimator.setInterpolator(new AccelerateInterpolator());
         pointAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
@@ -180,31 +175,25 @@ public class HoneyCombLoader extends View {
                 invalidate();
             }
         });
-        animatorSet = new AnimatorSet();
-        animatorSet.playTogether(fadeInAlphaAnimator, fadeOutAlphaAnimator, pointAnimator);
-        animatorSet.setDuration(mDuration);
-        animatorSet.addListener(new AnimatorListenerAdapter() {
+        mAnimatorSet = new AnimatorSet();
+        mAnimatorSet.playTogether(fadeInAlphaAnimator, fadeOutAlphaAnimator, pointAnimator);
+        mAnimatorSet.setDuration(mDuration);
+        mAnimatorSet.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
                 super.onAnimationEnd(animation);
                 startAnimator();
             }
-
-            @Override
-            public void onAnimationCancel(Animator animation) {
-                super.onAnimationCancel(animation);
-                Log.e(TAG, "onAnimationCancel: ");
-            }
         });
-        animatorSet.start();
+        mAnimatorSet.start();
     }
 
 
-    public void animateCircle(float moveX, float moveY, Canvas canvas) {
+    public void drawMoveBall(float moveX, float moveY, Canvas canvas) {
         canvas.drawCircle(moveX, moveY, mMoveBallRadius, mMoveBallPaint);
     }
 
-    public Path getMirrorPath(float radius, float cx, float cy) {
+    public Path getHoneyCombPath(float radius, float cx, float cy) {
         Path path = new Path();
         radius -= mPaintWidth * 0.5f;
         float offsetAngle = 0;
@@ -228,20 +217,17 @@ public class HoneyCombLoader extends View {
 
     @Override
     public void onWindowFocusChanged(boolean hasWindowFocus) {
-        Log.e(TAG, "onWindowFocusChanged: " + hasWindowFocus);
         super.onWindowFocusChanged(hasWindowFocus);
-        if (animatorSet == null) {
+        if (mAnimatorSet == null) {
             return;
         }
         if (hasWindowFocus) {
-            if (!animatorSet.isRunning()) {
+            if (!mAnimatorSet.isRunning()) {
                 startAnimator();
             }
         } else {
-            animatorSet.removeAllListeners();
-            animatorSet.cancel();
+            mAnimatorSet.removeAllListeners();
+            mAnimatorSet.cancel();
         }
     }
-
-
 }
