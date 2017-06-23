@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="HoneyCombLoader">
+        <attr name="honey_color" format="color|reference"/>
+        <attr name="honey_ballColor" format="color|reference"/>
+        <attr name="honey_duration" format="integer"/>
+        <attr name="honey_alpha" format="float"/>
+        <attr name="honey_hideBall" format="boolean"/>
+        <attr name="honey_style">
+            <enum name="stroke" value="0"/>
+            <enum name="fill" value="1"/>
+        </attr>
+    </declare-styleable>
+</resources>

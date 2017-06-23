@@ -10,20 +10,29 @@
     tools:context="sample.kingja.honeycomb.MainActivity">
 
     <com.kingja.honeycomb.HoneyCombLoader
-        android:background="#bebebe"
-        android:layout_width="300dp"
-        android:layout_height="300dp"/>
-  <!--
+        app:honey_hideBall="true"
+        app:honey_alpha="0.5"
+        app:honey_ballColor="#ffffff"
+        app:honey_style="fill"
+        app:honey_color="#6c1879"
+        app:honey_duration="1000"
+        android:layout_width="200dp"
+        android:layout_height="200dp"/>
     <com.kingja.honeycomb.HoneyCombLoader
         android:layout_width="150dp"
-        android:layout_height="150dp"/>-->
+        android:layout_height="150dp"/>
 
-<!--    <com.kingja.honeycomb.HoneyCombLoader
+    <com.kingja.honeycomb.HoneyCombLoader
+        app:honey_alpha="0.2"
+        app:honey_ballColor="#8d8ab6"
+        app:honey_style="fill"
+        app:honey_color="#3a538e"
+        app:honey_duration="300"
         android:layout_width="80dp"
         android:layout_height="80dp"/>
 
     <com.kingja.honeycomb.HoneyCombLoader
         android:layout_width="56dp"
-        android:layout_height="56dp"/>-->
+        android:layout_height="56dp"/>
 
 </LinearLayout>
